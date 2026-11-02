@@ -1,0 +1,1 @@
+ALTER TABLE routes_configuration_versions MODIFY COLUMN route_id VARCHAR(150);

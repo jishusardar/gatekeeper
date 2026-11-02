@@ -1,0 +1,2 @@
+ALTER TABLE organization MODIFY COLUMN created_at DATETIME;
+ALTER TABLE organization MODIFY COLUMN deleted_at DATETIME;

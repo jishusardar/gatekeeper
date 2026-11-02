@@ -1,0 +1,1 @@
+ALTER TABLE management_user ADD (created_at DATETIME,updated_at DATETIME);

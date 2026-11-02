@@ -1,0 +1,1 @@
+ALTER TABLE routes_allowed_methods RENAME COLUMN route_id TO route_pk;

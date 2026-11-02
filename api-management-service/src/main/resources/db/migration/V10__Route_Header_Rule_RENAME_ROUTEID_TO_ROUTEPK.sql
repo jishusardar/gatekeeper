@@ -1,0 +1,1 @@
+ALTER TABLE routes_header_rules RENAME COLUMN route_id TO route_pk;

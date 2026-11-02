@@ -1,0 +1,1 @@
+ALTER TABLE api_routes MODIFY COLUMN route_id VARCHAR(150);
