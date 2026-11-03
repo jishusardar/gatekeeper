@@ -2,6 +2,7 @@ package me.projects.gatekeeper.api_management_service.Service;
 
 import lombok.RequiredArgsConstructor;
 import me.projects.gatekeeper.api_management_service.Entity.*;
+import me.projects.gatekeeper.api_management_service.Event.GatewayConfigurationEventService;
 import me.projects.gatekeeper.api_management_service.Exception.ApiException;
 import me.projects.gatekeeper.api_management_service.Repository.API_RoutesRepository;
 import me.projects.gatekeeper.api_management_service.Repository.ControlPlaneAuditRepository;
@@ -32,6 +33,7 @@ public class RouteService {
     private final ObjectMapper objectMapper;
     private final AuditService auditService;
     private final ControlPlaneAuditRepository controlPlaneAuditRepository;
+    private GatewayConfigurationEventService gatewayConfigurationEventService;
     @Transactional
     public RouteResponse create(RouteRequest routeRequest){
         Long startedAt=System.nanoTime();
@@ -50,6 +52,8 @@ public class RouteService {
         saveVersion(apiRoutes,"CREATED");
         auditService.record(organization,"CREATE_ROUTE","API_ROUTES",routeRequest.getRouteId()
                 ,startedAt,"Route Configuration version 1 created");
+        gatewayConfigurationEventService.publish("CREATED",organization.getId()
+                ,apiRoutes.getRouteId(),apiRoutes.getConfiguration_Version());
         return RouteResponse.from(apiRoutes);
     }
     @Transactional(readOnly = true)
@@ -76,6 +80,8 @@ public class RouteService {
         saveVersion(routes,"UPDATED");
         auditService.record(organization,"UPDATE_ROUTES","API_ROUTES",routes.getRouteId()
                 ,startedAt,"Route Configuration Version "+routes.getConfiguration_Version()+" created");
+        gatewayConfigurationEventService.publish("UPDATED",organization.getId(),
+                routes.getRouteId(),routes.getConfiguration_Version());
         return RouteResponse.from(routes);
     }
     @Transactional
@@ -91,6 +97,8 @@ public class RouteService {
         saveVersion(routes,changeType);
         auditService.record(organization,action,"API_ROUTES",routes.getRouteId()
                 ,startedAt,"Route Configuration Version "+routes.getConfiguration_Version()+" created");
+        gatewayConfigurationEventService.publish(changeType,organization.getId(),
+                routes.getRouteId(),routes.getConfiguration_Version());
         return RouteResponse.from(routes);
     }
     @Transactional
@@ -103,6 +111,8 @@ public class RouteService {
         saveVersion(routes,"DELETED");
         auditService.record(organization,"DELETE_ROUTES","API_ROUTES",
                 id.toString(),startedAt,"soft Deleted Route "+id);
+        gatewayConfigurationEventService.publish("DELETED",organization.getId(),
+                routes.getRouteId(),routes.getConfiguration_Version());
         apiRoutesRepository.delete(routes);
     }
     public void validate(RouteRequest routeRequest,Organization organization){

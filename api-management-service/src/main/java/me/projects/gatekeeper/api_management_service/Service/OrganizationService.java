@@ -5,6 +5,7 @@ import me.projects.gatekeeper.api_management_service.Entity.ManagementUser;
 import me.projects.gatekeeper.api_management_service.Entity.Organization;
 import me.projects.gatekeeper.api_management_service.Entity.OrganizationStatus;
 import me.projects.gatekeeper.api_management_service.Entity.Role;
+import me.projects.gatekeeper.api_management_service.Event.GatewayConfigurationEventService;
 import me.projects.gatekeeper.api_management_service.Exception.ApiException;
 import me.projects.gatekeeper.api_management_service.Repository.ManagementUserRepository;
 import me.projects.gatekeeper.api_management_service.Repository.OrganizationRepository;
@@ -35,6 +36,7 @@ public class OrganizationService {
     private final TenantContext tenantContext;
     private final AuditService auditService;
     private final AbstractDetectingUrlHandlerMapping abstractDetectingUrlHandlerMapping;
+    private final GatewayConfigurationEventService configurationEventService;
 
     @Transactional
     public OrganizationResponse create(OrganizationRequest organizationRequest){
@@ -73,6 +75,8 @@ public class OrganizationService {
         organization.setUpdated_at(LocalDateTime.now());
         auditService.record(organization,"UPDATE_ORGANIZATION","ORGANIZATION"
                 ,id.toString(),startedAt,"Organization Name and Slug Updated");
+        configurationEventService.publish("ORGANIZATION_UPDATED",organization.getId(),
+                null,null);
         return OrganizationResponse.from(organization);
     }
     @Transactional
@@ -84,7 +88,10 @@ public class OrganizationService {
         }
         organization.setStatus(organizationStatusRequest.getStatus());
         organization.setUpdated_at(LocalDateTime.now());
-        auditService.record(organization,"CHANGE_ORGANIZATION_STATUS","ORGANIZATION",id.toString(),startedAt,"Status Changed to "+organizationStatusRequest.getStatus());
+        auditService.record(organization,"CHANGE_ORGANIZATION_STATUS","ORGANIZATION",id.toString(),
+                startedAt,"Status Changed to "+organizationStatusRequest.getStatus());
+        configurationEventService.publish("ORGANIZATION_"+organization.getStatus(),organization.getId(),
+                null,null);
         return OrganizationResponse.from(organization);
     }
     @Transactional
@@ -96,6 +103,8 @@ public class OrganizationService {
         organization.setUpdated_at(LocalDateTime.now());
         auditService.record(organization,"DELETE_ORGANIZATION","ORGANIZATION"
                 ,id.toString(),startedAt,"Organization Soft-Deleted");
+        configurationEventService.publish("ORGANIZATION_DELETED",organization.getId(),
+                null,null);
     }
     public void checkUnique(String name,String slug,Long currentId){
         if(organizationRepository.existsByNameIgnoreCase(name)){

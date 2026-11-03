@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class GatewayConfigurationChangeEvent {
-    private Long eventId;
+    private String eventId;
     private String eventType;
     private String changeType;
     private Long OrganizationId;
